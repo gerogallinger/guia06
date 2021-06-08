@@ -1,8 +1,9 @@
 package died.guia06;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import died.guia06.excepciones.ExcepcionCreditosRequeridos;
+import died.guia06.excepciones.ExcepcionCuposCubierto;
 import died.guia06.util.Registro;
 
 /**
@@ -13,7 +14,7 @@ import died.guia06.util.Registro;
  * @author marti
  *
  */
-public class Curso {
+public class Curso  {
 
 	private Integer id;
 	private String nombre;
@@ -24,7 +25,71 @@ public class Curso {
 	private Integer creditosRequeridos;
 	
 	private Registro log;
-	
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public Integer getCicloLectivo() {
+		return cicloLectivo;
+	}
+
+	public void setCicloLectivo(Integer cicloLectivo) {
+		this.cicloLectivo = cicloLectivo;
+	}
+
+	public Integer getCupo() {
+		return cupo;
+	}
+
+	public void setCupo(Integer cupo) {
+		this.cupo = cupo;
+	}
+
+	public Integer getCreditos() {
+		return creditos;
+	}
+
+	public void setCreditos(Integer creditos) {
+		this.creditos = creditos;
+	}
+
+	public Integer getCreditosRequeridos() {
+		return creditosRequeridos;
+	}
+
+	public void setCreditosRequeridos(Integer creditosRequeridos) {
+		this.creditosRequeridos = creditosRequeridos;
+	}
+
+	public void setInscriptos(Alumno a){
+		this.inscriptos.add(a);
+	}
+
+	public List<Alumno> getInscriptos(){
+		return inscriptos;
+	}
+
+	public Registro getLog() {
+		return log;
+	}
+
+	public void setLog(Registro log) {
+		this.log = log;
+	}
+
 	public Curso() {
 		super();
 		this.inscriptos = new ArrayList<Alumno>();
@@ -45,8 +110,29 @@ public class Curso {
 	 * @param a
 	 * @return
 	 */
-	public Boolean inscribir(Alumno a) {
-		log.registrar(this, "inscribir ",a.toString());
+	public Boolean inscribir(Alumno a) throws ExcepcionCreditosRequeridos, ExcepcionCuposCubierto {
+		//log.registrar(this, "inscribir ",a.toString());
+
+		if(a.obtenerCreditoAlumno()> creditosRequeridos){
+			if(cupo>0){
+				if(a.getCursando().size()<3 ){
+					a.setCursando(this);
+					this.inscriptos.add(a);
+					this.cupo = this.cupo -1;
+					return true;
+				}
+			}else{
+				if(cupo ==0){
+					ExcepcionCuposCubierto e2 = new ExcepcionCuposCubierto("Cupos del curso cubierto");
+					throw e2;
+				}
+			}
+		}else {
+			ExcepcionCreditosRequeridos e1 = new ExcepcionCreditosRequeridos("Creditos Requeridos insuficientes");
+			throw e1;
+		}
+
+
 		return false;
 	}
 	
@@ -55,8 +141,50 @@ public class Curso {
 	 * imprime los inscriptos en orden alfabetico
 	 */
 	public void imprimirInscriptos() {
-		log.registrar(this, "imprimir listado",this.inscriptos.size()+ " registros ");
+		List<Alumno> imprInscr = inscriptos;
+
+ 		System.out.println("Lista de inscriptos sin orden: ");
+		mostrarCreditosSinOrden(imprInscr);
+		System.out.println("Lista de inscriptos ordenado alfabeticamente: ");
+		mostrarAlfabeticamente(imprInscr);
+		System.out.println("Lista de inscriptos ordenado por libreta : ");
+		mostrarLibretaUniversitaria(imprInscr);
+		System.out.println("Lista de inscriptos ordenado por creditos: ");
+		mostrarCreditosObtenidos(imprInscr);
+
+
+		//log.registrar(this, "imprimir listado",this.inscriptos.size()+ " registros ");
+	}
+	public void mostrarAlfabeticamente(List<Alumno> imprInscr){
+		Collections.sort(imprInscr, new comparaAlumnosAlfabeticamente());
+		for(int i = 0; i<imprInscr.size();i++){
+			System.out.println(imprInscr.get(i).getNombre());
+			//System.out.println(imprInscr.get(i).getNroLibreta());
+		}
+	}
+	public void mostrarLibretaUniversitaria(List<Alumno> insc){
+		Collections.sort(insc, new comparaAlumnosLibreta());
+		for(int i = 0; i<insc.size();i++){
+			System.out.println(insc.get(i).getNombre());
+			//System.out.println(imprInscr.get(i).getNroLibreta());
+		}
+	}
+	public void mostrarCreditosObtenidos(List<Alumno> insc){
+		Collections.sort(insc, new comparaAlumnosCreditos());
+		for(int i = 0; i<insc.size();i++){
+			System.out.println(insc.get(i).getNombre());
+			//System.out.println(imprInscr.get(i).getNroLibreta());
+		}
+	}
+	public void mostrarCreditosSinOrden(List<Alumno> insc){
+		for(int i = 0; i<insc.size();i++){
+			System.out.println(insc.get(i).getNombre());
+			//System.out.println(imprInscr.get(i).getNroLibreta());
+		}
 	}
 
 
+	public int compare(Alumno a, Alumno b) {
+		return a.getNombre().compareTo(b.getNombre());
+	}
 }
